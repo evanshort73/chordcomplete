@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Chord Complete</title>
+    <script src="script.js"></script>
+    <script src="elm.js"></script>
+  </head>
+  <body>
+    <div id="main"></div>
+    <script>
+      var app = Elm.Main.fullscreen();
+      app.ports.requestDissonance.subscribe(
+        function(chord) {
+          app.ports.receiveDissonance.send(getDissonance(chord));
+        }
+      );
+    </script>
+  </body>
+</html>
