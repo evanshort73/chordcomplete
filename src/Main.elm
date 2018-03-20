@@ -1,5 +1,7 @@
 port module Main exposing (..)
 
+import Keyboard
+
 import Html exposing (Html, button, div, text)
 import Html.Events exposing (onClick)
 import Set exposing (Set)
@@ -81,4 +83,5 @@ view model =
                 ]
             )
         )
+    , Keyboard.view
     ]
