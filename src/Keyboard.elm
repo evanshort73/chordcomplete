@@ -1,5 +1,7 @@
 module Keyboard exposing (view)
 
+import Gradients
+
 import Html exposing (Html)
 import Html.Attributes exposing (attribute, style)
 import Svg exposing (Svg, svg, path, rect)
@@ -14,7 +16,8 @@ view =
     , viewBox "0 0 49 42"
     ]
     ( List.concat
-        [ [ rect
+        [ [ Gradients.keyboardGradients
+          , rect
               [ width "100%"
               , height "100%"
               , fill "black"
@@ -103,7 +106,7 @@ drawBlackKey x y =
       ]
       []
   , path
-      [ fill "white"
+      [ fill "url(#blackKey)"
       , opacity "0.67"
       , style [ ( "pointer-events", "none" ) ]
       , dHelp
@@ -123,7 +126,7 @@ drawBlackKey x y =
       ]
       []
   , path
-      [ fill "white"
+      [ fill "url(#blackKey)"
       , opacity "0.46"
       , style [ ( "pointer-events", "none" ) ]
       , dHelp
@@ -141,7 +144,7 @@ drawBlackKey x y =
       ]
       []
   , path
-      [ fill "white"
+      [ fill "url(#blackKey)"
       , opacity "0.28"
       , style [ ( "pointer-events", "none" ) ]
       , dHelp
