@@ -118,18 +118,15 @@ drawWhiteKey pitch selected delta x y lThin rThin =
           ]
         else
           []
-      , if delta /= 0 then
-          [ circle
-              [ fill (if delta > 0 then "red" else "white")
-              , style [ ( "pointer-events", "none" ) ]
-              , cx (toString (x - toFloat lThin + 3.5))
-              , cy (toString (whiteLength - 0.25 - 3.5))
-              , r (toString (3 * abs delta))
-              ]
-              []
-          ]
-        else
-          []
+      , [ circle
+            [ fill (if selected then "white" else "#2ecc71")
+            , style [ ( "pointer-events", "none" ) ]
+            , cx (toString (x - toFloat lThin + 3.5))
+            , cy (toString (whiteLength - 0.25 - 3.5))
+            , r (toString (getRadius selected delta))
+            ]
+            []
+        ]
       ]
 
 drawBlackKey : Int -> Bool -> Float -> Float -> Float -> List (Svg Msg)
@@ -235,18 +232,15 @@ drawBlackKey pitch selected delta x y =
           ]
         else
           []
-      , if delta /= 0 then
-          [ circle
-              [ fill (if delta > 0 then "red" else "white")
-              , style [ ( "pointer-events", "none" ) ]
-              , cx (toString (x + 2))
-              , cy (toString (blackLength - 0.25 - 2))
-              , r (toString (3 * abs delta))
-              ]
-              []
-          ]
-        else
-          []
+      , [ circle
+            [ fill (if selected then "white" else "#2ecc71")
+            , style [ ( "pointer-events", "none" ) ]
+            , cx (toString (x + 2))
+            , cy (toString (blackLength - 0.25 - 2))
+            , r (toString (getRadius selected delta))
+            ]
+            []
+        ]
       ]
 
 whiteLength : Float
@@ -266,3 +260,10 @@ rightGlint = 0.12
 
 dHelp : List (List String) -> Svg.Attribute msg
 dHelp = d << String.concat << List.concat
+
+getRadius : Bool -> Float -> Float
+getRadius selected delta =
+  if selected then
+    2 * sqrt (1 - 7 ^ (2 * delta))
+  else
+    2 * 7 ^ -delta
