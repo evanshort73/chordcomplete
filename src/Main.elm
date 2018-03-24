@@ -1,8 +1,10 @@
 port module Main exposing (..)
 
+import Guide exposing (Guide)
 import Keyboard
 
 import Html exposing (Html, button, div, text)
+import Json.Decode as Decode
 import Set exposing (Set)
 
 main : Program Never Model Msg
@@ -11,29 +13,32 @@ main =
     { init = init
     , view = view
     , update = update
-    , subscriptions = always (receiveDissonance SetDissonance)
+    , subscriptions = always (receiveGuide SetGuide)
     }
 
 -- MODEL
 
 type alias Model =
   { chord : Set Int
-  , dissonance : Float
+  , guide : Guide
   }
 
 init : (Model, Cmd Msg)
 init =
   ( { chord = Set.empty
-    , dissonance = 0
+    , guide =
+        { dissonance = 0
+        , deltas = List.repeat 88 0
+        }
     }
-  , requestDissonance []
+  , requestGuide []
   )
 
 -- UPDATE
 
 type Msg
   = KeyboardMsg Keyboard.Msg
-  | SetDissonance Float
+  | SetGuide Decode.Value
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -43,7 +48,7 @@ update msg model =
         chord = Set.insert pitch model.chord
       in
         ( { model | chord = chord }
-        , requestDissonance (Set.toList chord)
+        , requestGuide (Set.toList chord)
         )
 
     KeyboardMsg (Keyboard.Deselect pitch) ->
@@ -51,21 +56,23 @@ update msg model =
         chord = Set.remove pitch model.chord
       in
         ( { model | chord = chord }
-        , requestDissonance (Set.toList chord)
+        , requestGuide (Set.toList chord)
         )
 
-    SetDissonance dissonance ->
-      ( { model
-        | dissonance = dissonance
-        }
+    SetGuide value ->
+      ( case Decode.decodeValue Guide.decoder value of
+          Ok guide ->
+            { model | guide = guide }
+          Err _ ->
+            model
       , Cmd.none
       )
 
 
 -- SUBSCRIPTIONS
 
-port requestDissonance : List Int -> Cmd msg
-port receiveDissonance : (Float -> msg) -> Sub msg
+port requestGuide : List Int -> Cmd msg
+port receiveGuide : (Decode.Value -> msg) -> Sub msg
 
 -- VIEW
 
@@ -74,6 +81,6 @@ view model =
   div []
     [ Html.map KeyboardMsg (Keyboard.view model.chord)
     , div []
-        [ text (toString model.dissonance)
+        [ text (toString model.guide.dissonance)
         ]
     ]

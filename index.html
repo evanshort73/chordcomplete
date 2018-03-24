@@ -10,9 +10,9 @@
     <div id="main"></div>
     <script>
       var app = Elm.Main.fullscreen();
-      app.ports.requestDissonance.subscribe(
+      app.ports.requestGuide.subscribe(
         function(chord) {
-          app.ports.receiveDissonance.send(getDissonance(chord));
+          app.ports.receiveGuide.send(getGuide(chord));
         }
       );
     </script>
