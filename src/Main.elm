@@ -83,5 +83,5 @@ view model =
                 ]
             )
         )
-    , Keyboard.view
+    , Keyboard.view model.chord
     ]
