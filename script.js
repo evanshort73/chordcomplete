@@ -73,7 +73,7 @@ function getGuide(chord) {
   let deltas = [];
   for (let pitch = 21; pitch < 109; pitch++) {
     let rawDelta = 0;
-    let direction = 0;
+    let direction = 1;
     for (let i = 0; i < chord.length; i++) {
       if (chord[i] == pitch) {
         direction = -1;

@@ -5,10 +5,10 @@ import Gradients
 import Html exposing (Html)
 import Html.Attributes exposing (attribute, style)
 import Set exposing (Set)
-import Svg exposing (Svg, svg, path, rect)
+import Svg exposing (Svg, svg, path, rect, circle)
 import Svg.Attributes exposing
   ( width, height, viewBox, d, fill, stroke, strokeWidth, strokeLinejoin
-  , opacity
+  , opacity, cx, cy, r
   )
 import Svg.Events exposing (onClick)
 
@@ -16,8 +16,8 @@ type Msg
   = Select Int
   | Deselect Int
 
-view : Set Int -> Html Msg
-view chord =
+view : Set Int -> List Float -> Html Msg
+view chord deltas =
   svg
     [ width "1248"
     , height "144"
@@ -32,20 +32,20 @@ view chord =
               ]
               []
           ]
-        , List.concatMap (drawKey chord) (List.range 0 87)
+        , List.concat (List.indexedMap (drawKey chord) deltas)
         ]
     )
 
-drawKey : Set Int -> Int -> List (Svg Msg)
-drawKey chord i =
+drawKey : Set Int -> Int -> Float -> List (Svg Msg)
+drawKey chord i delta =
   let
     pitch = i + 21
   in let
     selected = Set.member pitch chord
   in
     case i of
-      0 -> drawWhiteKey pitch selected 0 0 0 1
-      87 -> drawWhiteKey pitch selected (14 + 7 * 49) 0 0 0
+      0 -> drawWhiteKey pitch selected delta 0 0 0 1
+      87 -> drawWhiteKey pitch selected delta (14 + 7 * 49) 0 0 0
       _ ->
         let
           remainder = (i - 6) % 12 -- octave starts at Eb
@@ -55,18 +55,18 @@ drawKey chord i =
           x = toFloat (27 + quotient * 49 + remainder * 4)
         in
           case remainder of
-            9 -> drawWhiteKey pitch selected x 0 0 3
-            11 -> drawWhiteKey pitch selected x 0 1 1
-            1 -> drawWhiteKey pitch selected x 0 3 0
-            2 -> drawWhiteKey pitch selected x 0 0 3
-            4 -> drawWhiteKey pitch selected x 0 1 2
-            6 -> drawWhiteKey pitch selected x 0 2 1
-            8 -> drawWhiteKey pitch selected x 0 3 0
-            _ -> drawBlackKey pitch selected x 0
+            9 -> drawWhiteKey pitch selected delta x 0 0 3
+            11 -> drawWhiteKey pitch selected delta x 0 1 1
+            1 -> drawWhiteKey pitch selected delta x 0 3 0
+            2 -> drawWhiteKey pitch selected delta x 0 0 3
+            4 -> drawWhiteKey pitch selected delta x 0 1 2
+            6 -> drawWhiteKey pitch selected delta x 0 2 1
+            8 -> drawWhiteKey pitch selected delta x 0 3 0
+            _ -> drawBlackKey pitch selected delta x 0
 
 drawWhiteKey :
-  Int -> Bool -> Float -> Float -> Int -> Int -> List (Svg Msg)
-drawWhiteKey pitch selected x y lThin rThin =
+  Int -> Bool -> Float -> Float -> Float -> Int -> Int -> List (Svg Msg)
+drawWhiteKey pitch selected delta x y lThin rThin =
   let
     dAttribute =
       dHelp
@@ -118,10 +118,22 @@ drawWhiteKey pitch selected x y lThin rThin =
           ]
         else
           []
+      , if delta /= 0 then
+          [ circle
+              [ fill (if delta > 0 then "red" else "white")
+              , style [ ( "pointer-events", "none" ) ]
+              , cx (toString (x - toFloat lThin + 3.5))
+              , cy (toString (whiteLength - 0.25 - 3.5))
+              , r (toString (3 * abs delta))
+              ]
+              []
+          ]
+        else
+          []
       ]
 
-drawBlackKey : Int -> Bool -> Float -> Float -> List (Svg Msg)
-drawBlackKey pitch selected x y =
+drawBlackKey : Int -> Bool -> Float -> Float -> Float -> List (Svg Msg)
+drawBlackKey pitch selected delta x y =
   let
     dAttribute =
       dHelp
@@ -218,6 +230,18 @@ drawBlackKey pitch selected x y =
               , strokeLinejoin "round"
               , style [ ( "pointer-events", "none" ) ]
               , dAttribute
+              ]
+              []
+          ]
+        else
+          []
+      , if delta /= 0 then
+          [ circle
+              [ fill (if delta > 0 then "red" else "white")
+              , style [ ( "pointer-events", "none" ) ]
+              , cx (toString (x + 2))
+              , cy (toString (blackLength - 0.25 - 2))
+              , r (toString (3 * abs delta))
               ]
               []
           ]

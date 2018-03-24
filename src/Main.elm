@@ -79,7 +79,7 @@ port receiveGuide : (Decode.Value -> msg) -> Sub msg
 view : Model -> Html Msg
 view model =
   div []
-    [ Html.map KeyboardMsg (Keyboard.view model.chord)
+    [ Html.map KeyboardMsg (Keyboard.view model.chord model.guide.deltas)
     , div []
         [ text (toString model.guide.dissonance)
         ]
