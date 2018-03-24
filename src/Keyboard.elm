@@ -11,9 +11,9 @@ import Svg.Attributes exposing
 view : Html msg
 view =
   svg
-    [ width "700"
-    , height "600"
-    , viewBox "0 0 49 42"
+    [ width "1248"
+    , height "144"
+    , viewBox "0 0 364 42"
     ]
     ( List.concat
         [ [ Gradients.keyboardGradients
@@ -24,22 +24,32 @@ view =
               ]
               []
           ]
-        , List.concat
-            [ drawWhiteKey 0 0 0 3
-            , drawBlackKey 4 0
-            , drawWhiteKey 8 0 1 1
-            , drawBlackKey 13 0
-            , drawWhiteKey 17 0 3 0
-            , drawWhiteKey 21 0 0 3
-            , drawBlackKey 25 0
-            , drawWhiteKey 29 0 1 2
-            , drawBlackKey 33 0
-            , drawWhiteKey 37 0 2 1
-            , drawBlackKey 41 0
-            , drawWhiteKey 45 0 3 0
-            ]
+        , List.concatMap drawKey (List.range 0 87)
         ]
     )
+
+drawKey : Int -> List (Svg msg)
+drawKey i =
+  case i of
+    0 -> drawWhiteKey 0 0 0 1
+    87 -> drawWhiteKey (14 + 7 * 49) 0 0 0
+    _ ->
+      let
+        remainder = (i - 6) % 12 -- octave starts at Eb
+      in let
+        quotient = (i - 6 - remainder) // 12
+      in let
+        x = toFloat (27 + quotient * 49 + remainder * 4)
+      in
+        case remainder of
+          9 -> drawWhiteKey x 0 0 3
+          11 -> drawWhiteKey x 0 1 1
+          1 -> drawWhiteKey x 0 3 0
+          2 -> drawWhiteKey x 0 0 3
+          4 -> drawWhiteKey x 0 1 2
+          6 -> drawWhiteKey x 0 2 1
+          8 -> drawWhiteKey x 0 3 0
+          _ -> drawBlackKey x 0
 
 drawWhiteKey : Float -> Float -> Int -> Int -> List (Svg msg)
 drawWhiteKey x y lThin rThin =
