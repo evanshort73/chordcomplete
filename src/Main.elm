@@ -3,7 +3,6 @@ port module Main exposing (..)
 import Keyboard
 
 import Html exposing (Html, button, div, text)
-import Html.Events exposing (onClick)
 import Set exposing (Set)
 
 main : Program Never Model Msg
@@ -19,38 +18,39 @@ main =
 
 type alias Model =
   { chord : Set Int
-  , topPitch : Int
   , dissonance : Float
   }
 
 init : (Model, Cmd Msg)
 init =
-  ( { chord = Set.singleton 69
-    , topPitch = 69
+  ( { chord = Set.empty
     , dissonance = 0
     }
-  , requestDissonance [ 69 ]
+  , requestDissonance []
   )
 
 -- UPDATE
 
 type Msg
-  = AddInterval Int
+  = KeyboardMsg Keyboard.Msg
   | SetDissonance Float
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
-    AddInterval interval ->
+    KeyboardMsg (Keyboard.Select pitch) ->
       let
-        topPitch = model.topPitch + interval
-      in let
-        chord = Set.insert topPitch model.chord
+        chord = Set.insert pitch model.chord
       in
-        ( { model
-          | chord = chord
-          , topPitch = topPitch
-          }
+        ( { model | chord = chord }
+        , requestDissonance (Set.toList chord)
+        )
+
+    KeyboardMsg (Keyboard.Deselect pitch) ->
+      let
+        chord = Set.remove pitch model.chord
+      in
+        ( { model | chord = chord }
         , requestDissonance (Set.toList chord)
         )
 
@@ -72,16 +72,8 @@ port receiveDissonance : (Float -> msg) -> Sub msg
 view : Model -> Html Msg
 view model =
   div []
-    [ button [ onClick (AddInterval 3) ] [ text "add minor third" ]
-    , button [ onClick (AddInterval 4) ] [ text "add major third" ]
-    , text
-        ( String.join
-            " "
-            ( List.concat
-                [ List.map toString (Set.toList model.chord)
-                , [ "(dissonance " ++ toString model.dissonance ++ ")" ]
-                ]
-            )
-        )
-    , Keyboard.view model.chord
+    [ Html.map KeyboardMsg (Keyboard.view model.chord)
+    , div []
+        [ text (toString model.dissonance)
+        ]
     ]

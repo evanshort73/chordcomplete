@@ -1,4 +1,4 @@
-module Keyboard exposing (view)
+module Keyboard exposing (view, Msg(..))
 
 import Gradients
 
@@ -10,8 +10,13 @@ import Svg.Attributes exposing
   ( width, height, viewBox, d, fill, stroke, strokeWidth, strokeLinejoin
   , opacity
   )
+import Svg.Events exposing (onClick)
 
-view : Set Int -> Html msg
+type Msg
+  = Select Int
+  | Deselect Int
+
+view : Set Int -> Html Msg
 view chord =
   svg
     [ width "1248"
@@ -31,12 +36,16 @@ view chord =
         ]
     )
 
-drawKey : Set Int -> Int -> List (Svg msg)
+drawKey : Set Int -> Int -> List (Svg Msg)
 drawKey chord i =
-  let selected = Set.member (i + 21) chord in
+  let
+    pitch = i + 21
+  in let
+    selected = Set.member pitch chord
+  in
     case i of
-      0 -> drawWhiteKey selected 0 0 0 1
-      87 -> drawWhiteKey selected (14 + 7 * 49) 0 0 0
+      0 -> drawWhiteKey pitch selected 0 0 0 1
+      87 -> drawWhiteKey pitch selected (14 + 7 * 49) 0 0 0
       _ ->
         let
           remainder = (i - 6) % 12 -- octave starts at Eb
@@ -46,17 +55,18 @@ drawKey chord i =
           x = toFloat (27 + quotient * 49 + remainder * 4)
         in
           case remainder of
-            9 -> drawWhiteKey selected x 0 0 3
-            11 -> drawWhiteKey selected x 0 1 1
-            1 -> drawWhiteKey selected x 0 3 0
-            2 -> drawWhiteKey selected x 0 0 3
-            4 -> drawWhiteKey selected x 0 1 2
-            6 -> drawWhiteKey selected x 0 2 1
-            8 -> drawWhiteKey selected x 0 3 0
-            _ -> drawBlackKey selected x 0
+            9 -> drawWhiteKey pitch selected x 0 0 3
+            11 -> drawWhiteKey pitch selected x 0 1 1
+            1 -> drawWhiteKey pitch selected x 0 3 0
+            2 -> drawWhiteKey pitch selected x 0 0 3
+            4 -> drawWhiteKey pitch selected x 0 1 2
+            6 -> drawWhiteKey pitch selected x 0 2 1
+            8 -> drawWhiteKey pitch selected x 0 3 0
+            _ -> drawBlackKey pitch selected x 0
 
-drawWhiteKey : Bool -> Float -> Float -> Int -> Int -> List (Svg msg)
-drawWhiteKey selected x y lThin rThin =
+drawWhiteKey :
+  Int -> Bool -> Float -> Float -> Int -> Int -> List (Svg Msg)
+drawWhiteKey pitch selected x y lThin rThin =
   let
     dAttribute =
       dHelp
@@ -85,36 +95,33 @@ drawWhiteKey selected x y lThin rThin =
             ]
         ]
   in
-    if selected then
-      [ path
-          [ fill "#99ccff"
-          , attribute "tabindex" "0"
-          , style [ ( "cursor", "pointer" ) ]
-          , dAttribute
+    List.concat
+      [ [ path
+            [ fill (if selected then "#99ccff" else "white")
+            , attribute "tabindex" "0"
+            , style [ ( "cursor", "pointer" ) ]
+            , onClick ((if selected then Deselect else Select) pitch)
+            , dAttribute
+            ]
+            []
+        ]
+      , if selected then
+          [ path
+              [ stroke "#3399ff"
+              , fill "none"
+              , strokeWidth "0.5"
+              , strokeLinejoin "round"
+              , style [ ( "pointer-events", "none" ) ]
+              , dAttribute
+              ]
+              []
           ]
-          []
-      , path
-          [ stroke "#3399ff"
-          , fill "none"
-          , strokeWidth "0.5"
-          , strokeLinejoin "round"
-          , style [ ( "pointer-events", "none" ) ]
-          , dAttribute
-          ]
-          []
-      ]
-    else
-      [ path
-          [ fill "white"
-          , attribute "tabindex" "0"
-          , style [ ( "cursor", "pointer" ) ]
-          , dAttribute
-          ]
+        else
           []
       ]
 
-drawBlackKey : Bool -> Float -> Float -> List (Svg msg)
-drawBlackKey selected x y =
+drawBlackKey : Int -> Bool -> Float -> Float -> List (Svg Msg)
+drawBlackKey pitch selected x y =
   let
     dAttribute =
       dHelp
@@ -130,6 +137,7 @@ drawBlackKey selected x y =
             [ fill (if selected then "#204080" else "black")
             , attribute "tabindex" "0"
             , style [ ( "cursor", "pointer" ) ]
+            , onClick ((if selected then Deselect else Select) pitch)
             , dAttribute
             ]
             []
