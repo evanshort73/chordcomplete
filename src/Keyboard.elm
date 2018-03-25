@@ -32,41 +32,42 @@ view chord deltas =
               ]
               []
           ]
-        , List.concat (List.indexedMap (drawKey chord) deltas)
+        , List.concatMap (drawKey chord) (List.range 0 87)
+        , List.concat (List.indexedMap (drawDelta chord) deltas)
         ]
     )
 
-drawKey : Set Int -> Int -> Float -> List (Svg Msg)
-drawKey chord i delta =
+drawKey : Set Int -> Int -> List (Svg Msg)
+drawKey chord key =
   let
-    pitch = i + 21
+    pitch = key + 21
   in let
     selected = Set.member pitch chord
   in
-    case i of
-      0 -> drawWhiteKey pitch selected delta 0 0 0 1
-      87 -> drawWhiteKey pitch selected delta (14 + 7 * 49) 0 0 0
+    case key of
+      0 -> drawWhiteKey pitch selected 0 0 0 1
+      87 -> drawWhiteKey pitch selected (14 + 7 * 49) 0 0 0
       _ ->
         let
-          remainder = (i - 6) % 12 -- octave starts at Eb
+          remainder = (key - 6) % 12 -- octave starts at Eb
         in let
-          quotient = (i - 6 - remainder) // 12
+          quotient = (key - 6 - remainder) // 12
         in let
           x = toFloat (27 + quotient * 49 + remainder * 4)
         in
           case remainder of
-            9 -> drawWhiteKey pitch selected delta x 0 0 3
-            11 -> drawWhiteKey pitch selected delta x 0 1 1
-            1 -> drawWhiteKey pitch selected delta x 0 3 0
-            2 -> drawWhiteKey pitch selected delta x 0 0 3
-            4 -> drawWhiteKey pitch selected delta x 0 1 2
-            6 -> drawWhiteKey pitch selected delta x 0 2 1
-            8 -> drawWhiteKey pitch selected delta x 0 3 0
-            _ -> drawBlackKey pitch selected delta x 0
+            9 -> drawWhiteKey pitch selected x 0 0 3
+            11 -> drawWhiteKey pitch selected x 0 1 1
+            1 -> drawWhiteKey pitch selected x 0 3 0
+            2 -> drawWhiteKey pitch selected x 0 0 3
+            4 -> drawWhiteKey pitch selected x 0 1 2
+            6 -> drawWhiteKey pitch selected x 0 2 1
+            8 -> drawWhiteKey pitch selected x 0 3 0
+            _ -> drawBlackKey pitch selected x 0
 
 drawWhiteKey :
-  Int -> Bool -> Float -> Float -> Float -> Int -> Int -> List (Svg Msg)
-drawWhiteKey pitch selected delta x y lThin rThin =
+  Int -> Bool -> Float -> Float -> Int -> Int -> List (Svg Msg)
+drawWhiteKey pitch selected x y lThin rThin =
   let
     dAttribute =
       dHelp
@@ -118,19 +119,10 @@ drawWhiteKey pitch selected delta x y lThin rThin =
           ]
         else
           []
-      , [ circle
-            [ fill (if selected then "white" else "#2ecc71")
-            , style [ ( "pointer-events", "none" ) ]
-            , cx (toString (x - toFloat lThin + 3.5))
-            , cy (toString (whiteLength - 0.25 - 3.5))
-            , r (toString (getRadius selected delta))
-            ]
-            []
-        ]
       ]
 
-drawBlackKey : Int -> Bool -> Float -> Float -> Float -> List (Svg Msg)
-drawBlackKey pitch selected delta x y =
+drawBlackKey : Int -> Bool -> Float -> Float -> List (Svg Msg)
+drawBlackKey pitch selected x y =
   let
     dAttribute =
       dHelp
@@ -232,15 +224,6 @@ drawBlackKey pitch selected delta x y =
           ]
         else
           []
-      , [ circle
-            [ fill (if selected then "white" else "#2ecc71")
-            , style [ ( "pointer-events", "none" ) ]
-            , cx (toString (x + 2))
-            , cy (toString (blackLength - 0.25 - 2))
-            , r (toString (getRadius selected delta))
-            ]
-            []
-        ]
       ]
 
 whiteLength : Float
@@ -261,9 +244,47 @@ rightGlint = 0.12
 dHelp : List (List String) -> Svg.Attribute msg
 dHelp = d << String.concat << List.concat
 
+drawDelta : Set Int -> Int -> Float -> List (Svg msg)
+drawDelta chord key delta =
+  let
+    pitch = key + 21
+  in let
+    selected = Set.member pitch chord
+  in let
+    remainder = (key - 6) % 12 -- octave starts at Eb
+  in let
+    quotient = (key - 6 - remainder) // 12
+  in let
+    x =
+      if isWhiteKey pitch then
+        31.5 + 49 * toFloat quotient + 7 * toFloat (remainder * 7 // 12)
+      else
+        29 + 49 * toFloat quotient + 4 * toFloat remainder
+  in let
+    y =
+      if isWhiteKey pitch then
+        whiteLength - 0.25 - 3.5
+      else
+        blackLength - 0.25 - 2
+  in
+    [ circle
+        [ fill (if selected then "red" else "#2ecc71")
+        , style [ ( "pointer-events", "none" ) ]
+        , cx (toString x)
+        , cy (toString y)
+        , r (toString (getRadius selected delta))
+        ]
+        []
+    ]
+
+
+isWhiteKey : Int -> Bool
+isWhiteKey pitch =
+  (pitch % 2 == 1) == (pitch % 12 > 4)
+
 getRadius : Bool -> Float -> Float
 getRadius selected delta =
   if selected then
-    2 * sqrt (1 - 7 ^ (2 * delta))
+    3.5 * sqrt (1 - 7 ^ (2 * delta))
   else
-    2 * 7 ^ -delta
+    3.5 * 7 ^ -delta
