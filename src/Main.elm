@@ -1,9 +1,11 @@
 port module Main exposing (..)
 
+import AudioChange exposing (AudioChange(..))
 import Guide exposing (Guide)
 import Keyboard
 
 import Html exposing (Html, button, div, text)
+import Html.Events exposing (onClick)
 import Json.Decode as Decode
 import Set exposing (Set)
 
@@ -39,6 +41,7 @@ init =
 type Msg
   = KeyboardMsg Keyboard.Msg
   | SetGuide Decode.Value
+  | PlayNote
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -68,6 +71,10 @@ update msg model =
       , Cmd.none
       )
 
+    PlayNote ->
+      ( model
+      , AudioChange.perform [ AddNote { delay = 0, f = 440 } ]
+      )
 
 -- SUBSCRIPTIONS
 
@@ -82,5 +89,10 @@ view model =
     [ Html.map KeyboardMsg (Keyboard.view model.chord model.guide.deltas)
     , div []
         [ text (toString model.guide.dissonance)
+        ]
+    , button
+        [ onClick PlayNote
+        ]
+        [ text "Play a note"
         ]
     ]

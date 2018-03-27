@@ -1,3 +1,30 @@
+var ac = new (window.AudioContext || window.webkitAudioContext)();
+
+var reverb = Freeverb(ac);
+reverb.roomSize = 0.2;
+reverb.wet.value = 0.3;
+reverb.dry.value = 0.55;
+reverb.connect(ac.destination);
+
+var lp = ac.createBiquadFilter();
+lp.frequency = 2200;
+lp.connect(reverb);
+
+var synth = new Synth(6, ac);
+synth.connect(lp);
+synth.start();
+
+function changeAudio(changes) {
+  let now = ac.currentTime;
+  for (let i = 0; i < changes.length; i++) {
+    if (changes[i].type == "note") {
+      synth.noteAt(now + changes[i].delay, changes[i].f);
+    } else if (changes[i].type == "mute") {
+      synth.muteAt(now + changes[i].delay);
+    }
+  }
+}
+
 var partials = [];
 for (let key = 0; key < 88; key++) {
   let fundamental = 440 * Math.pow(2, (key - 48) / 12)

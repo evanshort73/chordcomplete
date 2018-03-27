@@ -3,6 +3,10 @@
   <head>
     <meta charset="utf-8">
     <title>Chord Complete</title>
+    <script src="envelope.js"></script>
+    <script src="voice.js"></script>
+    <script src="synth.js"></script>
+    <script src="freeverb.js"></script>
     <script src="script.js"></script>
     <script src="elm.js"></script>
   </head>
@@ -10,6 +14,7 @@
     <div id="main"></div>
     <script>
       var app = Elm.Main.fullscreen();
+      app.ports.changeAudio.subscribe(changeAudio);
       app.ports.requestGuide.subscribe(
         function(chord) {
           app.ports.receiveGuide.send(getGuide(chord));
