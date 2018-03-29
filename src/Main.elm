@@ -4,8 +4,7 @@ import AudioChange exposing (AudioChange(..))
 import Guide exposing (Guide)
 import Keyboard
 
-import Html exposing (Html, button, div, text)
-import Html.Events exposing (onClick)
+import Html exposing (Html, div, text)
 import Json.Decode as Decode
 import Set exposing (Set)
 
@@ -41,7 +40,6 @@ init =
 type Msg
   = KeyboardMsg Keyboard.Msg
   | SetGuide Decode.Value
-  | PlayNote
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
@@ -51,7 +49,12 @@ update msg model =
         chord = Set.insert pitch model.chord
       in
         ( { model | chord = chord }
-        , requestGuide (Set.toList chord)
+        , Cmd.batch
+            [ requestGuide (Set.toList chord)
+            , AudioChange.perform
+                [ AddNote { delay = 0, f = pitchFrequency pitch }
+                ]
+            ]
         )
 
     KeyboardMsg (Keyboard.Deselect pitch) ->
@@ -59,7 +62,13 @@ update msg model =
         chord = Set.remove pitch model.chord
       in
         ( { model | chord = chord }
-        , requestGuide (Set.toList chord)
+        , Cmd.batch
+            [ requestGuide (Set.toList chord)
+            , AudioChange.perform
+                [ AddNote { delay = 0, f = pitchFrequency pitch }
+                , MuteAllNotes 0.03
+                ]
+            ]
         )
 
     SetGuide value ->
@@ -71,10 +80,9 @@ update msg model =
       , Cmd.none
       )
 
-    PlayNote ->
-      ( model
-      , AudioChange.perform [ AddNote { delay = 0, f = 440 } ]
-      )
+pitchFrequency : Int -> Float
+pitchFrequency pitch =
+  440 * 2 ^ (toFloat (pitch - 69) / 12)
 
 -- SUBSCRIPTIONS
 
@@ -89,10 +97,5 @@ view model =
     [ Html.map KeyboardMsg (Keyboard.view model.chord model.guide.deltas)
     , div []
         [ text (toString model.guide.dissonance)
-        ]
-    , button
-        [ onClick PlayNote
-        ]
-        [ text "Play a note"
         ]
     ]
