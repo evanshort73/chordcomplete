@@ -15,9 +15,29 @@
     <script>
       var app = Elm.Main.fullscreen();
       app.ports.changeAudio.subscribe(changeAudio);
+
       app.ports.requestGuide.subscribe(
         function(chord) {
           app.ports.receiveGuide.send(getGuide(chord));
+        }
+      );
+
+      window.addEventListener("mousemove",
+        function(e) {
+          let harp = document.getElementById("harp");
+          let rect = harp.getBoundingClientRect();
+          app.ports.mouseMove.send(
+            {
+              x: (e.clientX - rect.left) / (rect.right - rect.left),
+              y: (e.clientY - rect.top) / (rect.bottom - rect.top)
+            }
+          );
+        }
+      );
+
+      window.addEventListener("mouseup",
+        function(e) {
+          app.ports.mouseUp.send(null);
         }
       );
     </script>
