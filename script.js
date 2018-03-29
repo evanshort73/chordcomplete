@@ -10,7 +10,7 @@ var lp = ac.createBiquadFilter();
 lp.frequency = 2200;
 lp.connect(reverb);
 
-var synth = new Synth(6, ac);
+var synth = new Synth(10, ac);
 synth.connect(lp);
 synth.start();
 
